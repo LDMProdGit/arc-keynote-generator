@@ -1041,22 +1041,21 @@ Closing line (exact)
 Call to action (one sentence)`;
  
   try {
-   const response = await fetch('https://arc-keynote-generator.vercel.app/api/generate', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    prompt: prompt,
-    userData: {
-      first_name: a.first_name,
-      last_name: a.last_name,
-      email: a.email
-    }
-  })
-});
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: prompt,
+        userData: {
+          first_name: a.first_name,
+          last_name: a.last_name,
+          email: a.email
+        }
+      })
+    });
  
     const data = await response.json();
     const text = data.output || '';
-console.log('RAW OUTPUT:', text);
     renderOutput(text, ((a.first_name || '') + ' ' + (a.last_name || '')).trim() || 'Your');
  
   } catch (err) {
@@ -1072,18 +1071,10 @@ console.log('RAW OUTPUT:', text);
 }
  
 function extractSection(text, key, nextKey) {
-  const regex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-  const start = text.search(regex);
+  const start = text.indexOf(key);
   if (start === -1) return text;
-  const matchEnd = start + text.slice(start).match(regex)[0].length;
-  const searchFrom = matchEnd;
-  let end = text.length;
-  if (nextKey) {
-    const nextRegex = new RegExp(nextKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-    const nextStart = text.slice(searchFrom).search(nextRegex);
-    if (nextStart !== -1) end = searchFrom + nextStart;
-  }
-  return text.slice(searchFrom, end).trim();
+  const end = nextKey ? text.indexOf(nextKey, start + key.length) : text.length;
+  return text.slice(start + key.length, end === -1 ? text.length : end).trim();
 }
  
 function renderOutput(text, name) {
