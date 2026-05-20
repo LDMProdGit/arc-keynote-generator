@@ -1,21 +1,16 @@
 module.exports = async function handler(req, res) {
-
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
   try {
     const { prompt, userData } = req.body;
-console.log('Key prefix:', (process.env.ANTHROPIC_API_KEY || 'MISSING').slice(0, 12));
-
+    console.log('Key prefix:', (process.env.ANTHROPIC_API_KEY || 'MISSING').slice(0, 12));
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -29,10 +24,10 @@ console.log('Key prefix:', (process.env.ANTHROPIC_API_KEY || 'MISSING').slice(0,
         messages: [{ role: 'user', content: prompt }]
       })
     });
-
     const claudeData = await claudeResponse.json();
+    console.log('Claude status:', claudeResponse.status);
+    console.log('Claude data:', JSON.stringify(claudeData).slice(0, 300));
     const output = claudeData.content?.[0]?.text || '';
-
     if (process.env.GHL_WEBHOOK_URL) await fetch(process.env.GHL_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -45,13 +40,9 @@ console.log('Key prefix:', (process.env.ANTHROPIC_API_KEY || 'MISSING').slice(0,
         tags: ['Keynote Generator Lead']
       })
     });
-
     return res.status(200).json({ output });
-
   } catch (error) {
     console.error('Error:', error);
-    return res.status(500).json({ 
-      error: 'Generation failed. Please try again.' 
-    });
+    return res.status(500).json({ error: error.message });
   }
 }
