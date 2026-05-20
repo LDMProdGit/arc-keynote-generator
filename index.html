@@ -1071,10 +1071,18 @@ Call to action (one sentence)`;
 }
  
 function extractSection(text, key, nextKey) {
-  const start = text.indexOf(key);
+  const regex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const start = text.search(regex);
   if (start === -1) return text;
-  const end = nextKey ? text.indexOf(nextKey, start + key.length) : text.length;
-  return text.slice(start + key.length, end === -1 ? text.length : end).trim();
+  const matchEnd = start + text.slice(start).match(regex)[0].length;
+  const searchFrom = matchEnd;
+  let end = text.length;
+  if (nextKey) {
+    const nextRegex = new RegExp(nextKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const nextStart = text.slice(searchFrom).search(nextRegex);
+    if (nextStart !== -1) end = searchFrom + nextStart;
+  }
+  return text.slice(searchFrom, end).trim();
 }
  
 function renderOutput(text, name) {
