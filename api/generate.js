@@ -14,6 +14,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const { prompt, userData } = req.body;
+console.log('Key prefix:', (process.env.ANTHROPIC_API_KEY || 'MISSING').slice(0, 12));
 
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
