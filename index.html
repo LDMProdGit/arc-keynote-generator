@@ -1056,6 +1056,7 @@ Call to action (one sentence)`;
  
     const data = await response.json();
     const text = data.output || '';
+console.log('RAW OUTPUT:', text);
     renderOutput(text, ((a.first_name || '') + ' ' + (a.last_name || '')).trim() || 'Your');
  
   } catch (err) {
