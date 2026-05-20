@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     const claudeData = await claudeResponse.json();
     const output = claudeData.content?.[0]?.text || '';
 
-    await fetch(process.env.GHL_WEBHOOK_URL, {
+    if (process.env.GHL_WEBHOOK_URL) await fetch(process.env.GHL_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
