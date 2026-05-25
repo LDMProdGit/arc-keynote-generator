@@ -28,19 +28,26 @@ module.exports = async function handler(req, res) {
     console.log('Claude status:', claudeResponse.status);
     console.log('Claude data:', JSON.stringify(claudeData).slice(0, 300));
     const output = claudeData.content?.[0]?.text || '';
-    if (process.env.GHL_WEBHOOK_URL) await fetch(process.env.GHL_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        email: userData.email,
-        keynote_output: output,
-        source: 'ARC Keynote Generator',
-        tags: ['Keynote Generator Lead']
-      })
-    });
-    return res.status(200).json({ output });
+
+    // Send results to user immediately
+    res.status(200).json({ output });
+
+    // Then notify GHL in the background — won't block or break the response
+    if (process.env.GHL_WEBHOOK_URL) {
+      fetch(process.env.GHL_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          email: userData.email,
+          keynote_output: output,
+          source: 'ARC Keynote Generator',
+          tags: ['Keynote Generator Lead']
+        })
+      }).catch(err => console.error('GHL webhook failed:', err));
+    }
+
   } catch (error) {
     console.error('Error:', error);
     return res.status(500).json({ error: error.message });
